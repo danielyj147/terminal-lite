@@ -25,6 +25,14 @@ export function App() {
         const next: Board = await res.json();
         if (seen.current.size === 0) {
           for (const c of next.cards) seen.current.set(c.id, new Set(c.items.map(itemId)));
+        } else {
+          // prune seen-ids that left the board — without this the sets grow
+          // forever in an always-on tab (slow but unbounded memory leak)
+          for (const c of next.cards) {
+            const live = new Set(c.items.map(itemId));
+            const s = seen.current.get(c.id);
+            if (s) for (const id of s) if (!live.has(id)) s.delete(id);
+          }
         }
         setBoard(next);
       } catch {
