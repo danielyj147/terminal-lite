@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from './Card';
 import type { Board } from './types';
 
@@ -41,6 +41,39 @@ export function App() {
     };
   }, []);
 
+  // ── drag-to-rearrange (persisted to localStorage) ──────────────────
+  const [order, setOrder] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cardOrder') ?? '[]');
+    } catch {
+      return [];
+    }
+  });
+  const dragId = useRef<string | null>(null);
+
+  const onDropOn = useCallback(
+    (targetId: string) => {
+      const src = dragId.current;
+      dragId.current = null;
+      if (!src || src === targetId || !board) return;
+      const ids = board.cards.map((c) => c.id);
+      const cur = [...order.filter((i) => ids.includes(i)), ...ids.filter((i) => !order.includes(i))];
+      const from = cur.indexOf(src);
+      const to = cur.indexOf(targetId);
+      if (from < 0 || to < 0) return;
+      cur.splice(to, 0, ...cur.splice(from, 1));
+      setOrder(cur);
+      localStorage.setItem('cardOrder', JSON.stringify(cur));
+    },
+    [board, order],
+  );
+
+  const sortedCards = useMemo(() => {
+    if (!board) return [];
+    const idx = new Map(order.map((id, i) => [id, i]));
+    return [...board.cards].sort((a, b) => (idx.get(a.id) ?? 999) - (idx.get(b.id) ?? 999));
+  }, [board, order]);
+
   const markSeen = useCallback(
     (cardId: string) => {
       const card = board?.cards.find((c) => c.id === cardId);
@@ -73,13 +106,15 @@ export function App() {
     <>
       <Backdrop />
       <div className="grid">
-        {board.cards.map((card) => (
+        {sortedCards.map((card) => (
           <Card
             key={card.id}
             card={card}
             now={now}
             seenIds={seen.current.get(card.id)}
             onSeen={markSeen}
+            onDragStart={(id) => (dragId.current = id)}
+            onDropOn={onDropOn}
           />
         ))}
       </div>
@@ -87,9 +122,9 @@ export function App() {
   );
 }
 
-// Ambient backdrop: slow-drifting blurred orbs behind the acrylic cards.
-// Transform-only animations (compositor work, no repaints) keep an
-// always-on board cheap to render.
+// Ambient backdrop: drifting blurred orbs + rising glass bubbles behind the
+// acrylic cards. Transform/opacity-only animations (compositor work, no
+// repaints) keep an always-on board cheap to render.
 function Backdrop() {
   return (
     <div className="backdrop" aria-hidden="true">
@@ -99,6 +134,9 @@ function Backdrop() {
       <div className="orb orb-4" />
       <div className="orb orb-5" />
       <div className="orb orb-6" />
+      {Array.from({ length: 9 }, (_, i) => (
+        <div key={i} className={`bubble bub-${i + 1}`} />
+      ))}
     </div>
   );
 }

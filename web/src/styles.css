@@ -30,46 +30,83 @@ body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  animation: huedrift 80s ease-in-out infinite alternate; /* slow palette shift */
+}
+
+@keyframes huedrift {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(50deg); }
 }
 
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.5;
+  filter: blur(60px);
+  opacity: 0.75;
   will-change: transform;
-  animation: drift 90s ease-in-out infinite alternate;
+  animation: drift 60s ease-in-out infinite alternate;
 }
 
-.orb-1 { width: 44vw; height: 44vw; top: -14vw; left: -8vw;
-  background: radial-gradient(circle at 35% 35%, rgba(61, 130, 216, 0.32), rgba(61, 130, 216, 0.05) 65%);
-  animation-duration: 110s; }
-.orb-2 { width: 36vw; height: 36vw; top: 30vh; right: -12vw;
-  background: radial-gradient(circle at 40% 30%, rgba(112, 76, 200, 0.26), rgba(112, 76, 200, 0.04) 65%);
-  animation-duration: 95s; animation-delay: -30s; }
-.orb-3 { width: 30vw; height: 30vw; bottom: -10vw; left: 22vw;
-  background: radial-gradient(circle at 45% 40%, rgba(47, 165, 143, 0.22), rgba(47, 165, 143, 0.04) 65%);
-  animation-duration: 130s; animation-delay: -60s; }
-.orb-4 { width: 22vw; height: 22vw; top: 8vh; left: 42vw;
-  background: radial-gradient(circle at 40% 35%, rgba(196, 148, 60, 0.14), rgba(196, 148, 60, 0.03) 65%);
-  animation-duration: 80s; animation-delay: -15s; }
-.orb-5 { width: 26vw; height: 26vw; bottom: 6vh; right: 24vw;
-  background: radial-gradient(circle at 38% 38%, rgba(58, 110, 220, 0.18), rgba(58, 110, 220, 0.03) 65%);
-  animation-duration: 120s; animation-delay: -75s; }
-.orb-6 { width: 16vw; height: 16vw; top: 55vh; left: 6vw;
-  background: radial-gradient(circle at 40% 35%, rgba(170, 90, 160, 0.16), rgba(170, 90, 160, 0.03) 65%);
-  animation-duration: 70s; animation-delay: -40s; }
+.orb-1 { width: 46vw; height: 46vw; top: -14vw; left: -8vw;
+  background: radial-gradient(circle at 35% 35%, rgba(64, 140, 235, 0.5), rgba(64, 140, 235, 0.07) 65%);
+  animation-duration: 64s; }
+.orb-2 { width: 38vw; height: 38vw; top: 28vh; right: -12vw;
+  background: radial-gradient(circle at 40% 30%, rgba(130, 84, 230, 0.42), rgba(130, 84, 230, 0.06) 65%);
+  animation-duration: 52s; animation-delay: -18s; }
+.orb-3 { width: 32vw; height: 32vw; bottom: -10vw; left: 20vw;
+  background: radial-gradient(circle at 45% 40%, rgba(45, 190, 160, 0.38), rgba(45, 190, 160, 0.05) 65%);
+  animation-duration: 72s; animation-delay: -35s; }
+.orb-4 { width: 24vw; height: 24vw; top: 6vh; left: 40vw;
+  background: radial-gradient(circle at 40% 35%, rgba(225, 165, 60, 0.25), rgba(225, 165, 60, 0.04) 65%);
+  animation-duration: 44s; animation-delay: -10s; }
+.orb-5 { width: 28vw; height: 28vw; bottom: 4vh; right: 22vw;
+  background: radial-gradient(circle at 38% 38%, rgba(66, 120, 240, 0.32), rgba(66, 120, 240, 0.05) 65%);
+  animation-duration: 58s; animation-delay: -42s; }
+.orb-6 { width: 18vw; height: 18vw; top: 52vh; left: 5vw;
+  background: radial-gradient(circle at 40% 35%, rgba(210, 95, 185, 0.3), rgba(210, 95, 185, 0.05) 65%);
+  animation-duration: 38s; animation-delay: -24s; }
 
-/* gentle drift-and-breathe; transform-only so it stays on the compositor */
+/* livelier drift: wider travel, gentle rotation, breathe */
 @keyframes drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  33%  { transform: translate3d(4vw, -3vh, 0) scale(1.08); }
-  66%  { transform: translate3d(-3vw, 4vh, 0) scale(0.94); }
-  100% { transform: translate3d(2vw, 2vh, 0) scale(1.05); }
+  0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  25%  { transform: translate3d(9vw, -7vh, 0) scale(1.14) rotate(12deg); }
+  50%  { transform: translate3d(-6vw, 9vh, 0) scale(0.9) rotate(-9deg); }
+  75%  { transform: translate3d(7vw, 5vh, 0) scale(1.1) rotate(7deg); }
+  100% { transform: translate3d(-4vw, -6vh, 0) scale(1.04) rotate(-4deg); }
 }
+
+/* rising glass bubbles — the "bubbling" layer */
+.bubble {
+  position: absolute;
+  bottom: -18vh;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.16), rgba(140, 180, 255, 0.07) 55%, transparent 72%);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.05);
+  will-change: transform, opacity;
+  animation: rise linear infinite;
+}
+
+@keyframes rise {
+  0%   { transform: translate3d(0, 0, 0) scale(0.9); opacity: 0; }
+  8%   { opacity: 0.65; }
+  50%  { transform: translate3d(2.5vw, -62vh, 0) scale(1.05); }
+  92%  { opacity: 0.45; }
+  100% { transform: translate3d(-2vw, -125vh, 0) scale(1.18); opacity: 0; }
+}
+
+.bub-1 { width: 9vw; height: 9vw; left: 4vw;  animation-duration: 38s; animation-delay: -4s; }
+.bub-2 { width: 5vw; height: 5vw; left: 16vw; animation-duration: 26s; animation-delay: -14s; }
+.bub-3 { width: 7vw; height: 7vw; left: 30vw; animation-duration: 44s; animation-delay: -30s; }
+.bub-4 { width: 4vw; height: 4vw; left: 43vw; animation-duration: 22s; animation-delay: -8s; }
+.bub-5 { width: 10vw; height: 10vw; left: 55vw; animation-duration: 50s; animation-delay: -22s; }
+.bub-6 { width: 5vw; height: 5vw; left: 67vw; animation-duration: 28s; animation-delay: -18s; }
+.bub-7 { width: 8vw; height: 8vw; left: 78vw; animation-duration: 40s; animation-delay: -34s; }
+.bub-8 { width: 4vw; height: 4vw; left: 88vw; animation-duration: 24s; animation-delay: -2s; }
+.bub-9 { width: 6vw; height: 6vw; left: 94vw; animation-duration: 33s; animation-delay: -26s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb { animation: none; }
+  .backdrop, .orb, .bubble { animation: none; }
+  .bubble { display: none; }
 }
 
 .boot {
@@ -83,9 +120,10 @@ body {
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  /* uniform 3-row layout: every card the same height, whole board fits one screen */
+  grid-auto-rows: calc((100dvh - 40px) / 3);
   gap: 10px;
   padding: 10px;
-  align-items: start;
 }
 
 /* ── acrylic cards ──────────────────────────────────────────────────── */
@@ -99,7 +137,8 @@ body {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  max-height: 46vh;
+  height: 100%;
+  min-height: 0;
 }
 
 .card header {
@@ -161,7 +200,24 @@ body {
   padding: 1px 4px;
 }
 
-.card-body { overflow-y: auto; scrollbar-width: thin; }
+.card-body { overflow-y: auto; min-height: 0; }
+
+/* themed scrollbars: near-invisible glass sliver, brightens on hover */
+.card-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+.card-body::-webkit-scrollbar { width: 5px; }
+.card-body::-webkit-scrollbar-track { background: transparent; }
+.card-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.card-body:hover::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.22); }
+
+/* drag affordance */
+.card header { cursor: grab; }
+.card header:active { cursor: grabbing; }
 
 .empty { padding: 12px 10px; color: var(--text-dim); font-size: 12px; }
 

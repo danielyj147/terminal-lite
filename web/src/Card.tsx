@@ -5,9 +5,11 @@ interface CardProps {
   now: number;
   seenIds?: Set<string>;
   onSeen: (cardId: string) => void;
+  onDragStart: (cardId: string) => void;
+  onDropOn: (cardId: string) => void;
 }
 
-export function Card({ card, now, seenIds, onSeen }: CardProps) {
+export function Card({ card, now, seenIds, onSeen, onDragStart, onDropOn }: CardProps) {
   // markers only make sense for list-like cards, not quotes/calendar
   const tracksNew = card.kind !== 'yahoo' && card.kind !== 'ffcal';
   const newIds = tracksNew && seenIds
@@ -15,8 +17,14 @@ export function Card({ card, now, seenIds, onSeen }: CardProps) {
     : null;
 
   return (
-    <section className={`card status-${card.status}`} onMouseEnter={() => tracksNew && onSeen(card.id)}>
-      <header>
+    <section
+      className={`card status-${card.status}`}
+      onMouseEnter={() => tracksNew && onSeen(card.id)}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={() => onDropOn(card.id)}
+    >
+      {/* header doubles as the drag handle for rearranging */}
+      <header draggable onDragStart={() => onDragStart(card.id)} title="Drag to rearrange">
         <h2>
           {card.icon && <span className="icon">{card.icon}</span>}
           {card.title}
