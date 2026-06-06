@@ -29,11 +29,12 @@ import { parseFeedXml } from './rss.mjs';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const DEFAULT_METHODS = ['syndication', 'openrss', 'nitter'];
 const DEFAULT_MIRRORS = ['https://rss.xcancel.com', 'https://nitter.privacyredirect.com'];
-// Wide spacing: the syndication burst bucket is tiny (observed ~1-2 requests
-// per quiet window) — pacing requests ~30s apart gets more of them through
-// per cycle than a fast sweep that 429s after the first.
-const SPACING_MS = 30_000; // between any two upstream requests, shared across all X cards
-const COOLDOWN_MS = 15 * 60_000; // global pause after a 429
+// Spacing is per method (limits are per service): syndication's burst bucket
+// is tiny (observed ~1-2 requests per quiet window) so it gets wide spacing;
+// the others are cheap probes.
+const SPACING_MS = { syndication: 30_000, openrss: 8_000, nitter: 8_000 };
+const COOLDOWN_429_MS = 15 * 60_000; // rate-limited: long pause
+const COOLDOWN_DOWN_MS = 10 * 60_000; // 5xx / bot-walled: service is down, stop probing
 
 // ── shared request queue ─────────────────────────────────────────────────
 let chain = Promise.resolve();
@@ -45,21 +46,24 @@ const cooldowns = new Map(); // method → timestamp until which it's iced
 
 const cooling = (method) => Date.now() < (cooldowns.get(method) ?? 0);
 
-function tripCooldown(method) {
-  cooldowns.set(method, Date.now() + COOLDOWN_MS);
-  console.warn(`[x] 429 from ${method} — its cooldown ${COOLDOWN_MS / 60000}min`);
+function tripCooldown(method, ms, why) {
+  cooldowns.set(method, Date.now() + ms);
+  console.warn(`[x] ${why} from ${method} — its cooldown ${ms / 60000}min`);
 }
 
 function enqueue(method, fn) {
   const run = chain.then(async () => {
+    // a method on cooldown fails instantly and pays no spacing — a cycle
+    // with every method iced completes in seconds, not minutes
     if (cooling(method)) throw Object.assign(new Error(`${method} cooldown`), { isCooldown: true });
     try {
       return await fn();
     } catch (err) {
-      if (err?.is429) tripCooldown(method);
+      if (err?.is429) tripCooldown(method, COOLDOWN_429_MS, '429');
+      else if (err?.isDown) tripCooldown(method, COOLDOWN_DOWN_MS, 'service down');
       throw err;
     } finally {
-      await sleep(SPACING_MS * (0.75 + Math.random() * 0.5));
+      await sleep(SPACING_MS[method] * (0.75 + Math.random() * 0.5));
     }
   });
   chain = run.catch(() => {});
@@ -166,6 +170,7 @@ const METHODS = {
         signal: AbortSignal.timeout(20_000),
       });
       if (res.status === 429) throw Object.assign(new Error('429'), { is429: true });
+      if (res.status >= 500) throw Object.assign(new Error(`openrss HTTP ${res.status}`), { isDown: true });
       if (!res.ok) throw new Error(`openrss ${handle}: HTTP ${res.status}`);
       return res.text();
     });
@@ -193,8 +198,11 @@ const METHODS = {
         if (items.length) return items;
       } catch (err) {
         lastErr = err;
+        if (err?.isCooldown) throw err; // method already iced — stop probing mirrors
       }
     }
+    // every mirror failed → the nitter path is down, stop probing for a while
+    cooldowns.set('nitter', Date.now() + COOLDOWN_DOWN_MS);
     throw lastErr ?? new Error(`nitter ${handle}: no mirror worked`);
   },
 };

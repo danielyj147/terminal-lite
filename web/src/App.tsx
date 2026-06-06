@@ -105,6 +105,7 @@ export function App() {
     return (
       <>
         <Backdrop />
+        <Ripples />
         <div className="boot">terminal-lite · connecting…</div>
       </>
     );
@@ -113,6 +114,7 @@ export function App() {
   return (
     <>
       <Backdrop />
+      <Ripples />
       <div className="grid">
         {sortedCards.map((card) => (
           <Card
@@ -127,6 +129,41 @@ export function App() {
         ))}
       </div>
     </>
+  );
+}
+
+// Water-like ripple trail following the cursor. Throttled by time + travel
+// distance so it stays subtle; each ripple is one compositor-animated ring
+// removed from the DOM when its animation ends.
+function Ripples() {
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const last = useRef({ x: -999, y: -999, t: 0, id: 0 });
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      const now = performance.now();
+      const dx = e.clientX - last.current.x;
+      const dy = e.clientY - last.current.y;
+      if (now - last.current.t < 70 || dx * dx + dy * dy < 900) return;
+      const id = ++last.current.id;
+      last.current = { x: e.clientX, y: e.clientY, t: now, id };
+      setRipples((rs) => [...rs.slice(-11), { id, x: e.clientX, y: e.clientY }]);
+    };
+    window.addEventListener('mousemove', onMove, { passive: true });
+    return () => window.removeEventListener('mousemove', onMove);
+  }, []);
+
+  return (
+    <div className="ripples" aria-hidden="true">
+      {ripples.map((r) => (
+        <span
+          key={r.id}
+          className="ripple"
+          style={{ left: r.x, top: r.y }}
+          onAnimationEnd={() => setRipples((rs) => rs.filter((x) => x.id !== r.id))}
+        />
+      ))}
+    </div>
   );
 }
 
