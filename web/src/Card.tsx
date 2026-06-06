@@ -77,8 +77,10 @@ function QuoteList({ rows }: { rows: QuoteRow[] }) {
       <tbody>
         {rows.map((r) => {
           const dir = r.change > 0 ? 'up' : r.change < 0 ? 'down' : 'flat';
+          // key includes the price: a tick remounts the row and replays the
+          // update-flash animation — visible "this number just changed" cue
           return (
-            <tr key={r.id}>
+            <tr key={`${r.id}|${r.price}`} className="tick">
               <td className="label">{r.label}</td>
               <td className="px">
                 {fmtPrice(r.price, r.dp)}

@@ -29,19 +29,35 @@ import { parseFeedXml } from './rss.mjs';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const DEFAULT_METHODS = ['syndication', 'openrss', 'nitter'];
 const DEFAULT_MIRRORS = ['https://rss.xcancel.com', 'https://nitter.privacyredirect.com'];
-const SPACING_MS = 8_000; // between any two upstream requests, shared across all X cards
+// Wide spacing: the syndication burst bucket is tiny (observed ~1-2 requests
+// per quiet window) — pacing requests ~30s apart gets more of them through
+// per cycle than a fast sweep that 429s after the first.
+const SPACING_MS = 30_000; // between any two upstream requests, shared across all X cards
 const COOLDOWN_MS = 15 * 60_000; // global pause after a 429
 
 // ── shared request queue ─────────────────────────────────────────────────
 let chain = Promise.resolve();
-let cooldownUntil = 0;
 
-function enqueue(fn) {
+// Cooldowns are PER METHOD: syndication being rate-limited says nothing
+// about openrss. A method on cooldown fails fast (never sleeps in the
+// queue — stacked waits once hung fetch cycles for an hour).
+const cooldowns = new Map(); // method → timestamp until which it's iced
+
+const cooling = (method) => Date.now() < (cooldowns.get(method) ?? 0);
+
+function tripCooldown(method) {
+  cooldowns.set(method, Date.now() + COOLDOWN_MS);
+  console.warn(`[x] 429 from ${method} — its cooldown ${COOLDOWN_MS / 60000}min`);
+}
+
+function enqueue(method, fn) {
   const run = chain.then(async () => {
-    const wait = cooldownUntil - Date.now();
-    if (wait > 0) await sleep(wait);
+    if (cooling(method)) throw Object.assign(new Error(`${method} cooldown`), { isCooldown: true });
     try {
       return await fn();
+    } catch (err) {
+      if (err?.is429) tripCooldown(method);
+      throw err;
     } finally {
       await sleep(SPACING_MS * (0.75 + Math.random() * 0.5));
     }
@@ -56,8 +72,6 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const handleCache = new Map(); // handle → { items, fetchedAt }
 const rotation = new Map(); // cardId → next handle index
 const seeded = new Set(); // cardIds whose disk cache was folded in
-
-const cooling = () => Date.now() < cooldownUntil;
 
 // On boot, reconstruct per-handle items from the card's persisted payload so
 // a restart doesn't forget handles that won't be re-fetched for a while.
@@ -79,17 +93,15 @@ export async function fetchX(card) {
   const perCycle = Math.min(card.perCycle ?? 3, card.handles.length);
   seedFromDisk(card);
 
-  // pick this cycle's slice of the rotation (skip entirely during cooldown)
+  // this cycle's slice of the rotation; methods on cooldown fail instantly,
+  // so a fully-iced cycle costs seconds, not minutes
+  const start = rotation.get(card.id) ?? 0;
   const toFetch = [];
-  if (!cooling()) {
-    const start = rotation.get(card.id) ?? 0;
-    for (let i = 0; i < perCycle; i++) toFetch.push(card.handles[(start + i) % card.handles.length]);
-    rotation.set(card.id, (start + perCycle) % card.handles.length);
-  }
+  for (let i = 0; i < perCycle; i++) toFetch.push(card.handles[(start + i) % card.handles.length]);
+  rotation.set(card.id, (start + perCycle) % card.handles.length);
 
   let fresh = 0;
   for (const handle of toFetch) {
-    if (cooling()) break;
     for (const method of methods) {
       try {
         const items = await METHODS[method](handle, card);
@@ -98,25 +110,20 @@ export async function fetchX(card) {
           fresh += 1;
           break;
         }
-      } catch (err) {
-        if (err?.is429) {
-          cooldownUntil = Date.now() + COOLDOWN_MS;
-          console.warn(`[x] 429 from ${method} — global cooldown ${COOLDOWN_MS / 60000}min`);
-        }
+      } catch {
+        // try the next method; 429 bookkeeping happens in enqueue()
       }
     }
   }
 
   const merged = card.handles.flatMap((h) => (handleCache.get(h)?.items ?? []).slice(0, perHandle));
-  if (toFetch.length && !fresh) {
-    console.warn(`[x] ${card.id}: 0/${toFetch.length} handles fetched fresh (@${toFetch.join(', @')})`);
-    // nothing fresh and nothing cached → real failure; otherwise serve cache as stale
-    if (!merged.length) throw new Error(`all methods failed for @${toFetch.join(', @')}`);
-  }
+  if (!fresh) console.warn(`[x] ${card.id}: 0/${toFetch.length} handles fetched fresh (@${toFetch.join(', @')})`);
   if (!merged.length) {
-    const err = new Error('no tweets cached yet (rate-limit cooldown?)');
-    // retry shortly after the cooldown lapses rather than exponential backoff
-    if (cooling()) err.retryMs = cooldownUntil - Date.now() + 30_000;
+    // nothing fresh and nothing cached → real failure; retry shortly after
+    // the earliest method cooldown lapses rather than exponential backoff
+    const err = new Error(`all methods failed for @${toFetch.join(', @')}`);
+    const soonest = Math.min(...(card.methods ?? DEFAULT_METHODS).map((m) => cooldowns.get(m) ?? 0));
+    if (soonest > Date.now()) err.retryMs = soonest - Date.now() + 30_000;
     throw err;
   }
 
@@ -127,7 +134,7 @@ export async function fetchX(card) {
 // ── methods ──────────────────────────────────────────────────────────────
 const METHODS = {
   async syndication(handle) {
-    const html = await enqueue(async () => {
+    const html = await enqueue('syndication', async () => {
       const res = await fetch(
         `https://syndication.twitter.com/srv/timeline-profile/screen-name/${encodeURIComponent(handle)}`,
         { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(20_000) },
@@ -153,7 +160,7 @@ const METHODS = {
   },
 
   async openrss(handle) {
-    const xml = await enqueue(async () => {
+    const xml = await enqueue('openrss', async () => {
       const res = await fetch(`https://openrss.org/x.com/${encodeURIComponent(handle)}`, {
         headers: { 'User-Agent': UA },
         signal: AbortSignal.timeout(20_000),
@@ -170,7 +177,7 @@ const METHODS = {
     let lastErr;
     for (const base of mirrors) {
       try {
-        const xml = await enqueue(async () => {
+        const xml = await enqueue('nitter', async () => {
           const res = await fetch(`${base}/${encodeURIComponent(handle)}/rss`, {
             headers: { 'User-Agent': UA },
             signal: AbortSignal.timeout(15_000),

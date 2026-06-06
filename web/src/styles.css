@@ -76,8 +76,20 @@ body {
   border-radius: 7px;
   padding: 1px 6px;
 }
-.news li.new { border-left: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+/* unseen items hold an accent tint until the card is hovered ("looked at") */
+.news li.new { border-left: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 11%, transparent); }
 .news li { border-left: 2px solid transparent; }
+.news li.new { animation: newfade 1.2s ease-out; }
+@keyframes newfade {
+  from { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+}
+
+/* quote rows flash when their price ticks (row remounts on price change) */
+@keyframes tickflash {
+  from { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  to { background: transparent; }
+}
+.quotes tr.tick { animation: tickflash 1.6s ease-out; }
 .closed {
   font: 9px ui-monospace, 'SF Mono', monospace;
   letter-spacing: 0.08em;
