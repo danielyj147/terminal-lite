@@ -5,6 +5,7 @@ import config from '../config/sources.mjs';
 import { initCache, getCard } from './cache.mjs';
 import { currentCadence, sessionOpenFor } from './marketHours.mjs';
 import { registerAdapter, startScheduler } from './scheduler.mjs';
+import { fetchFfCal } from './adapters/ffcal.mjs';
 import { fetchHackerNews } from './adapters/hackernews.mjs';
 import { fetchRss } from './adapters/rss.mjs';
 import { fetchYahoo } from './adapters/yahoo.mjs';
@@ -12,6 +13,7 @@ import { fetchYahoo } from './adapters/yahoo.mjs';
 registerAdapter('rss', fetchRss);
 registerAdapter('yahoo', fetchYahoo);
 registerAdapter('hackernews', fetchHackerNews);
+registerAdapter('ffcal', fetchFfCal);
 
 await initCache();
 startScheduler(config.cards);

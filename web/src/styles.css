@@ -120,6 +120,19 @@ body {
 .chg.down { color: var(--down); }
 .chg.flat { color: var(--text-dim); }
 
+/* econ calendar */
+.cal { width: 100%; border-collapse: collapse; }
+.cal td { padding: 4px 5px; border-bottom: 1px solid color-mix(in srgb, var(--card-border) 45%, transparent); font-size: 12px; }
+.cal .when { font: 10.5px ui-monospace, 'SF Mono', monospace; color: var(--text-dim); white-space: nowrap; padding-left: 10px; }
+.cal .impact { font-size: 9px; }
+.cal .impact.high { color: var(--down); }
+.cal .impact.medium { color: var(--amber); }
+.cal .impact.low { color: var(--text-dim); }
+.cal .ctry { font: 10.5px ui-monospace, monospace; color: var(--accent); }
+.cal .evt { color: var(--text); }
+.cal .fc { font: 10.5px ui-monospace, monospace; color: var(--text-dim); white-space: nowrap; text-align: right; }
+.cal tr.past { opacity: 0.45; }
+
 /* stale cards dim slightly but stay readable */
 .card.status-stale .card-body,
 .card.status-error .card-body { opacity: 0.65; }

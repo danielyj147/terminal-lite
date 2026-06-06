@@ -18,6 +18,16 @@ export interface QuoteRow {
   dp?: number;
 }
 
+export interface CalEvent {
+  id: string;
+  title: string;
+  country: string;
+  impact: 'High' | 'Medium' | 'Low' | 'Holiday';
+  forecast: string | null;
+  previous: string | null;
+  ts: number;
+}
+
 export interface BoardCard {
   id: string;
   title: string;

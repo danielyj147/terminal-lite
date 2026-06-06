@@ -1,4 +1,4 @@
-import type { BoardCard, NewsItem, QuoteRow } from './types';
+import type { BoardCard, CalEvent, NewsItem, QuoteRow } from './types';
 
 export function Card({ card, now }: { card: BoardCard; now: number }) {
   return (
@@ -15,6 +15,8 @@ export function Card({ card, now }: { card: BoardCard; now: number }) {
           <div className="empty">{card.status === 'pending' ? 'loading…' : (card.lastError ?? 'no data')}</div>
         ) : card.kind === 'yahoo' ? (
           <QuoteList rows={card.items as QuoteRow[]} />
+        ) : card.kind === 'ffcal' ? (
+          <CalendarList events={card.items as CalEvent[]} now={now} />
         ) : (
           <NewsList items={card.items as NewsItem[]} now={now} />
         )}
@@ -79,6 +81,39 @@ function QuoteList({ rows }: { rows: QuoteRow[] }) {
       </tbody>
     </table>
   );
+}
+
+function CalendarList({ events, now }: { events: CalEvent[]; now: number }) {
+  return (
+    <table className="cal">
+      <tbody>
+        {events.map((e) => {
+          const past = e.ts < now;
+          return (
+            <tr key={e.id} className={past ? 'past' : ''}>
+              <td className="when">{fmtEventTime(e.ts)}</td>
+              <td className={`impact ${e.impact.toLowerCase()}`}>●</td>
+              <td className="ctry">{e.country}</td>
+              <td className="evt">{e.title}</td>
+              <td className="fc">{e.forecast && <>f {e.forecast}</>}</td>
+              <td className="fc">{e.previous && <>p {e.previous}</>}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+const TIME_FMT = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+function fmtEventTime(ts: number): string {
+  return TIME_FMT.format(new Date(ts));
 }
 
 function fmtPrice(n: number, dp?: number): string {

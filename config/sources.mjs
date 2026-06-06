@@ -51,6 +51,21 @@ export default {
       count: 20,
     },
 
+    // ── Economic calendar ───────────────────────────────────────────────
+    // ForexFactory public weekly JSON. Covers USD/EUR/GBP/JPY/CNY/AUD/NZD/
+    // CAD/CHF — no KRW exists in any free calendar feed; Asia coverage is
+    // via JPY + CNY. minImpact: 'Low' | 'Medium' | 'High'.
+    {
+      id: 'econ-cal',
+      title: 'ECON CALENDAR',
+      type: 'ffcal',
+      cadence: 60 * MIN,
+      urls: ['https://nfs.faireconomy.media/ff_calendar_thisweek.json'],
+      countries: ['USD', 'JPY', 'CNY', 'EUR'],
+      minImpact: 'Medium',
+      maxItems: 40,
+    },
+
     // ── Markets ─────────────────────────────────────────────────────────
     // cadence may be a number (fixed) or { open, closed, session } where
     // session ∈ 'us' | 'asia' | 'always' (see server/marketHours.mjs).

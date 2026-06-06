@@ -14,7 +14,7 @@ A personal, self-hosted situational-awareness dashboard ("Bloomberg-terminal-lit
 ## 2. Target environment
 
 - **Display:** ~27" landscape (1440p/4K), full-screen browser window. Grid sized for 4–5 columns.
-- **User locale:** timestamps rendered in machine-local time.
+- **User locale:** all timestamps rendered in machine-local time (tz-agnostic by design; verified working from EDT).
 - **Runtime:** macOS, long-lived local process, single port, one-command start. Viewed at `http://localhost:<port>`.
 
 ## 3. Data domains
