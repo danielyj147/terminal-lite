@@ -19,6 +19,7 @@ export default {
     {
       id: 'news-wires',
       title: 'NEWS · WIRES & MARKETS',
+      icon: '📰',
       type: 'rss',
       cadence: 5 * MIN,
       maxItems: 40,
@@ -33,6 +34,7 @@ export default {
     {
       id: 'news-tech',
       title: 'NEWS · TECH & DEFENSE',
+      icon: '🛰️',
       type: 'rss',
       cadence: 10 * MIN,
       maxItems: 40,
@@ -46,6 +48,7 @@ export default {
     {
       id: 'hackernews',
       title: 'HACKER NEWS · TOP',
+      icon: '🟧',
       type: 'hackernews',
       cadence: 5 * MIN,
       count: 20,
@@ -58,6 +61,7 @@ export default {
     {
       id: 'econ-cal',
       title: 'ECON CALENDAR',
+      icon: '📅',
       type: 'ffcal',
       cadence: 60 * MIN,
       urls: ['https://nfs.faireconomy.media/ff_calendar_thisweek.json'],
@@ -73,6 +77,7 @@ export default {
     {
       id: 'mkt-us',
       title: 'MARKETS · US',
+      icon: '🇺🇸',
       type: 'yahoo',
       cadence: { open: 30_000, closed: 5 * MIN, session: 'us' },
       symbols: [
@@ -89,6 +94,7 @@ export default {
     {
       id: 'mkt-asia',
       title: 'MARKETS · ASIA',
+      icon: '🌏',
       type: 'yahoo',
       cadence: { open: 60_000, closed: 5 * MIN, session: 'asia' },
       symbols: [
@@ -100,6 +106,7 @@ export default {
     {
       id: 'mkt-rates',
       title: 'RATES · US TREASURIES',
+      icon: '🏛️',
       type: 'yahoo',
       cadence: { open: 60_000, closed: 10 * MIN, session: 'us' },
       symbols: [
@@ -113,6 +120,7 @@ export default {
     {
       id: 'mkt-fx',
       title: 'FX · CRYPTO · COMMODITIES',
+      icon: '💱',
       type: 'yahoo',
       cadence: { open: 60_000, closed: 60_000, session: 'always' },
       symbols: [
@@ -123,6 +131,53 @@ export default {
         { sym: 'GC=F', label: 'Gold' },
         { sym: 'CL=F', label: 'WTI' },
       ],
+    },
+
+    // ── X / social ──────────────────────────────────────────────────────
+    // Keyless multi-method fetcher (see server/adapters/x.mjs). Adding or
+    // moving a handle is a one-line edit. Optional per-card overrides:
+    //   methods: ['syndication','openrss','nitter']   — fallback order
+    //   nitterMirrors: ['https://...']                 — last-resort mirrors
+    //   perHandle: 5                                   — tweets kept per handle
+    {
+      id: 'x-ai',
+      title: 'X · AI LABS & RESEARCHERS',
+      icon: '🤖',
+      type: 'x',
+      cadence: 15 * MIN,
+      maxItems: 40,
+      handles: [
+        'AnthropicAI', 'claudeai', 'OpenAI', 'sama', 'gdb', 'ilyasut', 'ssi',
+        'AIatMeta', 'ylecun', 'demishassabis', 'GoogleDeepMind', 'IsomorphicLabs',
+        'AndrewYNg', 'karpathy', 'DrJimFan',
+      ],
+    },
+    {
+      id: 'x-defense',
+      title: 'X · DEFENSE & SPACE',
+      icon: '🚀',
+      type: 'x',
+      cadence: 15 * MIN,
+      maxItems: 25,
+      handles: ['anduriltech', 'PalantirTech', 'ssankar', 'SpaceX'],
+    },
+    {
+      id: 'x-dev',
+      title: 'X · DEV & TECH',
+      icon: '💻',
+      type: 'x',
+      cadence: 20 * MIN,
+      maxItems: 30,
+      handles: ['reactjs', 'nextjs', 'ThePrimeagen', 'theo', 'LowLevelTweets', 'PirateSoftware', 'Microsoft'],
+    },
+    {
+      id: 'x-wild',
+      title: 'X · WILDCARDS',
+      icon: '🃏',
+      type: 'x',
+      cadence: 20 * MIN,
+      maxItems: 25,
+      handles: ['elonmusk', 'lexfridman', 'PeteJudo'],
     },
   ],
 };

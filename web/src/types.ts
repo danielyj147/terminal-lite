@@ -31,6 +31,7 @@ export interface CalEvent {
 export interface BoardCard {
   id: string;
   title: string;
+  icon: string | null;
   kind: string;
   cadence: number;
   sessionOpen: boolean | null;

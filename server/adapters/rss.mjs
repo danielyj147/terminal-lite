@@ -47,10 +47,15 @@ async function fetchFeed(feed) {
     redirect: 'follow',
   });
   if (!res.ok) throw new Error(`${feed.name}: HTTP ${res.status}`);
-  const xml = parser.parse(await res.text());
+  return parseFeedXml(await res.text(), feed.name);
+}
 
+// Parse RSS/Atom/RDF text into normalized items. Exported for reuse by other
+// adapters that receive feed XML from non-standard transports (e.g. X mirrors).
+export function parseFeedXml(xmlText, sourceName) {
+  const xml = parser.parse(xmlText);
   const channel = xml?.rss?.channel ?? xml?.feed ?? xml?.['rdf:RDF'];
-  if (!channel) throw new Error(`${feed.name}: unrecognized feed format`);
+  if (!channel) throw new Error(`${sourceName}: unrecognized feed format`);
   let raw = channel.item ?? channel.entry ?? xml?.['rdf:RDF']?.item ?? [];
   if (!Array.isArray(raw)) raw = [raw];
 
@@ -62,7 +67,7 @@ async function fetchFeed(feed) {
         id: text(it.guid) ?? it.id ?? url ?? title,
         title,
         url,
-        source: feed.name,
+        source: sourceName,
         ts: Date.parse(it.pubDate ?? it.published ?? it.updated ?? it['dc:date'] ?? '') || Date.now(),
       };
     })

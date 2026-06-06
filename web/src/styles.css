@@ -56,6 +56,10 @@ body {
   letter-spacing: 0.08em;
   color: var(--accent);
 }
+.card h2 .icon { margin-right: 6px; font-size: 12px; }
+
+/* tweets get an extra clamp line vs headlines */
+.kind-x .news a { -webkit-line-clamp: 3; }
 
 .badge {
   font: 10px ui-monospace, 'SF Mono', monospace;
@@ -65,6 +69,15 @@ body {
 .badge.err { color: var(--down); }
 
 .header-right { display: flex; gap: 8px; align-items: baseline; }
+.new-count {
+  font: 10px ui-monospace, 'SF Mono', monospace;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 7px;
+  padding: 1px 6px;
+}
+.news li.new { border-left: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.news li { border-left: 2px solid transparent; }
 .closed {
   font: 9px ui-monospace, 'SF Mono', monospace;
   letter-spacing: 0.08em;

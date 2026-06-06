@@ -24,8 +24,10 @@ export function startScheduler(cards) {
 
 function runLoop(card, adapter) {
   let failures = 0;
+  let lastRetryHint = null;
 
   const tick = async () => {
+    lastRetryHint = null;
     try {
       const items = await adapter(card);
       setCard(card.id, { items, updatedAt: Date.now(), status: 'ok', lastError: null });
@@ -33,6 +35,7 @@ function runLoop(card, adapter) {
       failures = 0;
     } catch (err) {
       failures += 1;
+      if (Number.isFinite(err?.retryMs)) lastRetryHint = err.retryMs;
       const prev = getCard(card.id);
       setCard(card.id, {
         items: prev?.items ?? [],
@@ -43,7 +46,10 @@ function runLoop(card, adapter) {
       console.warn(`[sched] ${card.id} failed (x${failures}): ${err?.message ?? err}`);
     }
     const base = currentCadence(card.cadence);
-    const delay = failures ? Math.min(base * 2 ** failures, MAX_BACKOFF) : base;
+    let delay = failures ? Math.min(base * 2 ** failures, MAX_BACKOFF) : base;
+    // an adapter that knows when its upstream recovers (e.g. rate-limit
+    // cooldown) can hint the retry time instead of taking exponential backoff
+    if (failures && lastRetryHint != null) delay = lastRetryHint;
     setTimeout(tick, delay + delay * 0.1 * Math.random());
   };
 

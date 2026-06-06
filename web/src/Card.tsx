@@ -1,16 +1,33 @@
 import type { BoardCard, CalEvent, NewsItem, QuoteRow } from './types';
 
-export function Card({ card, now }: { card: BoardCard; now: number }) {
+interface CardProps {
+  card: BoardCard;
+  now: number;
+  seenIds?: Set<string>;
+  onSeen: (cardId: string) => void;
+}
+
+export function Card({ card, now, seenIds, onSeen }: CardProps) {
+  // markers only make sense for list-like cards, not quotes/calendar
+  const tracksNew = card.kind !== 'yahoo' && card.kind !== 'ffcal';
+  const newIds = tracksNew && seenIds
+    ? new Set(card.items.map((it) => String((it as NewsItem).id)).filter((id) => !seenIds.has(id)))
+    : null;
+
   return (
-    <section className={`card status-${card.status}`}>
+    <section className={`card status-${card.status}`} onMouseEnter={() => tracksNew && onSeen(card.id)}>
       <header>
-        <h2>{card.title}</h2>
+        <h2>
+          {card.icon && <span className="icon">{card.icon}</span>}
+          {card.title}
+        </h2>
         <span className="header-right">
+          {newIds && newIds.size > 0 && <span className="new-count">+{newIds.size}</span>}
           {card.sessionOpen === false && <span className="closed">CLOSED</span>}
           <AgeBadge card={card} now={now} />
         </span>
       </header>
-      <div className="card-body">
+      <div className={`card-body kind-${card.kind}`}>
         {card.items.length === 0 ? (
           <div className="empty">{card.status === 'pending' ? 'loading…' : (card.lastError ?? 'no data')}</div>
         ) : card.kind === 'yahoo' ? (
@@ -18,7 +35,7 @@ export function Card({ card, now }: { card: BoardCard; now: number }) {
         ) : card.kind === 'ffcal' ? (
           <CalendarList events={card.items as CalEvent[]} now={now} />
         ) : (
-          <NewsList items={card.items as NewsItem[]} now={now} />
+          <NewsList items={card.items as NewsItem[]} now={now} newIds={newIds} />
         )}
       </div>
     </section>
@@ -38,11 +55,11 @@ function AgeBadge({ card, now }: { card: BoardCard; now: number }) {
   );
 }
 
-function NewsList({ items, now }: { items: NewsItem[]; now: number }) {
+function NewsList({ items, now, newIds }: { items: NewsItem[]; now: number; newIds: Set<string> | null }) {
   return (
     <ul className="news">
       {items.map((it) => (
-        <li key={it.id}>
+        <li key={it.id} className={newIds?.has(String(it.id)) ? 'new' : ''}>
           <span className="ts">{fmtAge(now - it.ts)}</span>
           <span className="src">{it.source}</span>
           <a href={it.url} target="_blank" rel="noreferrer">

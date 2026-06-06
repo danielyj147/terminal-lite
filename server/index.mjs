@@ -8,12 +8,14 @@ import { registerAdapter, startScheduler } from './scheduler.mjs';
 import { fetchFfCal } from './adapters/ffcal.mjs';
 import { fetchHackerNews } from './adapters/hackernews.mjs';
 import { fetchRss } from './adapters/rss.mjs';
+import { fetchX } from './adapters/x.mjs';
 import { fetchYahoo } from './adapters/yahoo.mjs';
 
 registerAdapter('rss', fetchRss);
 registerAdapter('yahoo', fetchYahoo);
 registerAdapter('hackernews', fetchHackerNews);
 registerAdapter('ffcal', fetchFfCal);
+registerAdapter('x', fetchX);
 
 await initCache();
 startScheduler(config.cards);
@@ -28,6 +30,7 @@ app.get('/api/board', (c) =>
       return {
         id: card.id,
         title: card.title,
+        icon: card.icon ?? null,
         kind: card.type,
         cadence: currentCadence(card.cadence),
         sessionOpen: sessionOpenFor(card.cadence),
