@@ -3,6 +3,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import config from '../config/sources.mjs';
 import { initCache, getCard } from './cache.mjs';
+import { currentCadence, sessionOpenFor } from './marketHours.mjs';
 import { registerAdapter, startScheduler } from './scheduler.mjs';
 import { fetchRss } from './adapters/rss.mjs';
 import { fetchYahoo } from './adapters/yahoo.mjs';
@@ -24,7 +25,8 @@ app.get('/api/board', (c) =>
         id: card.id,
         title: card.title,
         kind: card.type,
-        cadence: card.cadence,
+        cadence: currentCadence(card.cadence),
+        sessionOpen: sessionOpenFor(card.cadence),
         updatedAt: data?.updatedAt ?? null,
         status: data?.status ?? 'pending',
         lastError: data?.lastError ?? null,

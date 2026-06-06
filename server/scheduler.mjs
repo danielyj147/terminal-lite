@@ -2,6 +2,7 @@
 // A failing card backs off exponentially (cap 30min) and serves its last-good
 // data as 'stale' — one dead source never affects its siblings.
 import { getCard, setCard } from './cache.mjs';
+import { currentCadence } from './marketHours.mjs';
 
 const MAX_BACKOFF = 30 * 60_000;
 const adapters = new Map();
@@ -41,9 +42,8 @@ function runLoop(card, adapter) {
       });
       console.warn(`[sched] ${card.id} failed (x${failures}): ${err?.message ?? err}`);
     }
-    const delay = failures
-      ? Math.min(card.cadence * 2 ** failures, MAX_BACKOFF)
-      : card.cadence;
+    const base = currentCadence(card.cadence);
+    const delay = failures ? Math.min(base * 2 ** failures, MAX_BACKOFF) : base;
     setTimeout(tick, delay + delay * 0.1 * Math.random());
   };
 

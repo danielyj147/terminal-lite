@@ -14,6 +14,8 @@ export interface QuoteRow {
   changePct: number;
   currency?: string;
   marketTime: number;
+  suffix?: string;
+  dp?: number;
 }
 
 export interface BoardCard {
@@ -21,6 +23,7 @@ export interface BoardCard {
   title: string;
   kind: string;
   cadence: number;
+  sessionOpen: boolean | null;
   updatedAt: number | null;
   status: 'ok' | 'stale' | 'error' | 'pending';
   lastError: string | null;

@@ -38,6 +38,8 @@ async function fetchQuote(spec) {
         changePct: prev ? ((price - prev) / prev) * 100 : 0,
         currency: meta.currency,
         marketTime: (meta.regularMarketTime ?? 0) * 1000,
+        suffix: spec.suffix,
+        dp: spec.dp,
       };
     } catch (err) {
       lastErr = err; // try next host

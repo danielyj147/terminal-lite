@@ -64,6 +64,16 @@ body {
 .badge.stale { color: var(--amber); }
 .badge.err { color: var(--down); }
 
+.header-right { display: flex; gap: 8px; align-items: baseline; }
+.closed {
+  font: 9px ui-monospace, 'SF Mono', monospace;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  border: 1px solid var(--card-border);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
 .card-body { overflow-y: auto; scrollbar-width: thin; }
 
 .empty { padding: 12px 10px; color: var(--text-dim); font-size: 12px; }

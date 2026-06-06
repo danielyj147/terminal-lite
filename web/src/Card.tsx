@@ -5,7 +5,10 @@ export function Card({ card, now }: { card: BoardCard; now: number }) {
     <section className={`card status-${card.status}`}>
       <header>
         <h2>{card.title}</h2>
-        <AgeBadge card={card} now={now} />
+        <span className="header-right">
+          {card.sessionOpen === false && <span className="closed">CLOSED</span>}
+          <AgeBadge card={card} now={now} />
+        </span>
       </header>
       <div className="card-body">
         {card.items.length === 0 ? (
@@ -58,10 +61,13 @@ function QuoteList({ rows }: { rows: QuoteRow[] }) {
           return (
             <tr key={r.id}>
               <td className="label">{r.label}</td>
-              <td className="px">{fmtPrice(r.price)}</td>
+              <td className="px">
+                {fmtPrice(r.price, r.dp)}
+                {r.suffix ?? ''}
+              </td>
               <td className={`chg ${dir}`}>
                 {r.change >= 0 ? '+' : ''}
-                {fmtPrice(r.change)}
+                {fmtPrice(r.change, r.dp)}
               </td>
               <td className={`chg ${dir}`}>
                 {r.changePct >= 0 ? '+' : ''}
@@ -75,9 +81,9 @@ function QuoteList({ rows }: { rows: QuoteRow[] }) {
   );
 }
 
-function fmtPrice(n: number): string {
+function fmtPrice(n: number, dp?: number): string {
   const abs = Math.abs(n);
-  const digits = abs >= 1000 ? 2 : abs >= 10 ? 2 : 4;
+  const digits = dp ?? (abs >= 10 ? 2 : 4);
   return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
 
