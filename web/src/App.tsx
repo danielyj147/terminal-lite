@@ -60,19 +60,45 @@ export function App() {
     [board],
   );
 
-  if (!board) return <div className="boot">terminal-lite · connecting…</div>;
+  if (!board) {
+    return (
+      <>
+        <Backdrop />
+        <div className="boot">terminal-lite · connecting…</div>
+      </>
+    );
+  }
 
   return (
-    <div className="grid">
-      {board.cards.map((card) => (
-        <Card
-          key={card.id}
-          card={card}
-          now={now}
-          seenIds={seen.current.get(card.id)}
-          onSeen={markSeen}
-        />
-      ))}
+    <>
+      <Backdrop />
+      <div className="grid">
+        {board.cards.map((card) => (
+          <Card
+            key={card.id}
+            card={card}
+            now={now}
+            seenIds={seen.current.get(card.id)}
+            onSeen={markSeen}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// Ambient backdrop: slow-drifting blurred orbs behind the acrylic cards.
+// Transform-only animations (compositor work, no repaints) keep an
+// always-on board cheap to render.
+function Backdrop() {
+  return (
+    <div className="backdrop" aria-hidden="true">
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
+      <div className="orb orb-3" />
+      <div className="orb orb-4" />
+      <div className="orb orb-5" />
+      <div className="orb orb-6" />
     </div>
   );
 }
