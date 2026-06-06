@@ -1,8 +1,10 @@
 {
   "name": "terminal-lite",
   "version": "0.1.0",
+  "description": "Self-hosted, keyless situational-awareness dashboard — news, markets, econ calendar, and X feeds on a second monitor",
   "private": true,
   "type": "module",
+  "engines": { "node": ">=20" },
   "scripts": {
     "start": "node server/index.mjs",
     "build": "cd web && npm run build",
