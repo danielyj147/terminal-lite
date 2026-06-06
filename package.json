@@ -1,0 +1,17 @@
+{
+  "name": "terminal-lite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "build": "cd web && npm run build",
+    "dev:server": "node server/index.mjs",
+    "dev:web": "cd web && npm run dev"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "fast-xml-parser": "^4.5.0",
+    "hono": "^4.6.0"
+  }
+}
