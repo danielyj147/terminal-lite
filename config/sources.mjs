@@ -18,13 +18,37 @@ export default {
     // ── News ────────────────────────────────────────────────────────────
     {
       id: 'news-wires',
-      title: 'NEWS · WIRES',
+      title: 'NEWS · WIRES & MARKETS',
       type: 'rss',
       cadence: 5 * MIN,
-      maxItems: 30,
+      maxItems: 40,
       feeds: [
         { name: 'Axios', url: 'https://api.axios.com/feed/' },
+        { name: 'FT', url: 'https://www.ft.com/rss/home' },
+        { name: 'Bloomberg', url: 'https://feeds.bloomberg.com/markets/news.rss' },
+        // Reuters killed native RSS — proxied through Google News; capped so it can't flood the card
+        { name: 'Reuters', url: 'https://news.google.com/rss/search?q=site:reuters.com%20when:1d&hl=en-US&gl=US&ceid=US:en', max: 12 },
       ],
+    },
+    {
+      id: 'news-tech',
+      title: 'NEWS · TECH & DEFENSE',
+      type: 'rss',
+      cadence: 10 * MIN,
+      maxItems: 40,
+      feeds: [
+        { name: 'Economist', url: 'https://www.economist.com/latest/rss.xml' },
+        { name: 'Ars', url: 'https://feeds.arstechnica.com/arstechnica/index' },
+        { name: 'TWZ', url: 'https://www.twz.com/feed' },
+        { name: 'SemiAnalysis', url: 'https://semianalysis.com/feed/' },
+      ],
+    },
+    {
+      id: 'hackernews',
+      title: 'HACKER NEWS · TOP',
+      type: 'hackernews',
+      cadence: 5 * MIN,
+      count: 20,
     },
 
     // ── Markets ─────────────────────────────────────────────────────────

@@ -8,16 +8,36 @@ const parser = new XMLParser({ ignoreAttributes: false, processEntities: false }
 const UA = 'Mozilla/5.0 (compatible; terminal-lite/0.1; local personal dashboard)';
 
 export async function fetchRss(card) {
-  const results = await Promise.allSettled(card.feeds.map(fetchFeed));
-  const items = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  const results = await Promise.allSettled(
+    card.feeds.map(async (feed) => ({ feed, items: await fetchFeed(feed) })),
+  );
   const errors = results
     .filter((r) => r.status === 'rejected')
     .map((r) => r.reason?.message ?? String(r.reason));
   if (errors.length) console.warn(`[rss] ${card.id}: ${errors.join('; ')}`);
-  if (!items.length) throw new Error(errors.join('; ') || 'no items from any feed');
 
+  // Fair merge: a high-frequency feed must not drown the card.
+  // 1) cap each feed at its newest `feed.max` items (if set)
+  // 2) guarantee every live feed its newest `minPerFeed` items
+  // 3) fill remaining slots by recency across all feeds
+  const minPer = card.minPerFeed ?? 3;
+  const guaranteed = [];
+  const rest = [];
+  for (const r of results) {
+    if (r.status !== 'fulfilled' || !r.value.items.length) continue;
+    const capped = [...r.value.items]
+      .sort((a, b) => b.ts - a.ts)
+      .slice(0, r.value.feed.max ?? Infinity);
+    guaranteed.push(...capped.slice(0, minPer));
+    rest.push(...capped.slice(minPer));
+  }
+  if (!guaranteed.length) throw new Error(errors.join('; ') || 'no items from any feed');
+
+  rest.sort((a, b) => b.ts - a.ts);
+  const max = card.maxItems ?? 30;
+  const items = [...guaranteed, ...rest.slice(0, Math.max(0, max - guaranteed.length))];
   items.sort((a, b) => b.ts - a.ts);
-  return items.slice(0, card.maxItems ?? 30);
+  return items;
 }
 
 async function fetchFeed(feed) {
