@@ -38,41 +38,35 @@ body {
   to { filter: hue-rotate(50deg); }
 }
 
-.orb {
+/* flat 2D gradient discs: conic gradients (rotation is visible) under heavy
+   blur, spun with transform-only animation — pure compositor work */
+.disc {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.75;
+  filter: blur(64px);
+  opacity: 0.55;
   will-change: transform;
-  animation: drift 60s ease-in-out infinite alternate;
+  animation: spin linear infinite;
 }
 
-.orb-1 { width: 46vw; height: 46vw; top: -14vw; left: -8vw;
-  background: radial-gradient(circle at 35% 35%, rgba(64, 140, 235, 0.5), rgba(64, 140, 235, 0.07) 65%);
-  animation-duration: 64s; }
-.orb-2 { width: 38vw; height: 38vw; top: 28vh; right: -12vw;
-  background: radial-gradient(circle at 40% 30%, rgba(130, 84, 230, 0.42), rgba(130, 84, 230, 0.06) 65%);
-  animation-duration: 52s; animation-delay: -18s; }
-.orb-3 { width: 32vw; height: 32vw; bottom: -10vw; left: 20vw;
-  background: radial-gradient(circle at 45% 40%, rgba(45, 190, 160, 0.38), rgba(45, 190, 160, 0.05) 65%);
-  animation-duration: 72s; animation-delay: -35s; }
-.orb-4 { width: 24vw; height: 24vw; top: 6vh; left: 40vw;
-  background: radial-gradient(circle at 40% 35%, rgba(225, 165, 60, 0.25), rgba(225, 165, 60, 0.04) 65%);
-  animation-duration: 44s; animation-delay: -10s; }
-.orb-5 { width: 28vw; height: 28vw; bottom: 4vh; right: 22vw;
-  background: radial-gradient(circle at 38% 38%, rgba(66, 120, 240, 0.32), rgba(66, 120, 240, 0.05) 65%);
-  animation-duration: 58s; animation-delay: -42s; }
-.orb-6 { width: 18vw; height: 18vw; top: 52vh; left: 5vw;
-  background: radial-gradient(circle at 40% 35%, rgba(210, 95, 185, 0.3), rgba(210, 95, 185, 0.05) 65%);
-  animation-duration: 38s; animation-delay: -24s; }
+.disc-1 { width: 48vw; height: 48vw; top: -16vw; left: -10vw;
+  background: conic-gradient(from 0deg, rgba(64, 140, 235, 0.55), rgba(130, 84, 230, 0.25), rgba(45, 190, 160, 0.4), rgba(64, 140, 235, 0.55));
+  animation-duration: 55s; }
+.disc-2 { width: 40vw; height: 40vw; top: 26vh; right: -14vw;
+  background: conic-gradient(from 90deg, rgba(130, 84, 230, 0.5), rgba(210, 95, 185, 0.22), rgba(66, 120, 240, 0.38), rgba(130, 84, 230, 0.5));
+  animation-duration: 70s; animation-direction: reverse; }
+.disc-3 { width: 34vw; height: 34vw; bottom: -12vw; left: 18vw;
+  background: conic-gradient(from 200deg, rgba(45, 190, 160, 0.45), rgba(64, 140, 235, 0.2), rgba(225, 165, 60, 0.25), rgba(45, 190, 160, 0.45));
+  animation-duration: 85s; }
+.disc-4 { width: 24vw; height: 24vw; top: 8vh; left: 42vw;
+  background: conic-gradient(from 320deg, rgba(225, 165, 60, 0.32), rgba(210, 95, 185, 0.18), rgba(64, 140, 235, 0.24), rgba(225, 165, 60, 0.32));
+  animation-duration: 45s; animation-direction: reverse; }
+.disc-5 { width: 30vw; height: 30vw; bottom: 2vh; right: 20vw;
+  background: conic-gradient(from 140deg, rgba(66, 120, 240, 0.42), rgba(45, 190, 160, 0.2), rgba(130, 84, 230, 0.3), rgba(66, 120, 240, 0.42));
+  animation-duration: 65s; }
 
-/* livelier drift: wider travel, gentle rotation, breathe */
-@keyframes drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-  25%  { transform: translate3d(9vw, -7vh, 0) scale(1.14) rotate(12deg); }
-  50%  { transform: translate3d(-6vw, 9vh, 0) scale(0.9) rotate(-9deg); }
-  75%  { transform: translate3d(7vw, 5vh, 0) scale(1.1) rotate(7deg); }
-  100% { transform: translate3d(-4vw, -6vh, 0) scale(1.04) rotate(-4deg); }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* rising glass bubbles — the "bubbling" layer */
@@ -105,7 +99,7 @@ body {
 .bub-9 { width: 6vw; height: 6vw; left: 94vw; animation-duration: 33s; animation-delay: -26s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .backdrop, .orb, .bubble { animation: none; }
+  .backdrop, .disc, .bubble { animation: none; }
   .bubble { display: none; }
   .ripples { display: none; }
 }

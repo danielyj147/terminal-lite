@@ -173,12 +173,11 @@ function Ripples() {
 function Backdrop() {
   return (
     <div className="backdrop" aria-hidden="true">
-      <div className="orb orb-1" />
-      <div className="orb orb-2" />
-      <div className="orb orb-3" />
-      <div className="orb orb-4" />
-      <div className="orb orb-5" />
-      <div className="orb orb-6" />
+      <div className="disc disc-1" />
+      <div className="disc disc-2" />
+      <div className="disc disc-3" />
+      <div className="disc disc-4" />
+      <div className="disc disc-5" />
       {Array.from({ length: 9 }, (_, i) => (
         <div key={i} className={`bubble bub-${i + 1}`} />
       ))}
