@@ -69,23 +69,32 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* rising glass bubbles — the "bubbling" layer */
+/* rising 2D gradient circles — flat conic discs that spin while floating up
+   (no specular highlight, nothing reads as a 3D sphere) */
 .bubble {
   position: absolute;
   bottom: -18vh;
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.16), rgba(140, 180, 255, 0.07) 55%, transparent 72%);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.05);
+  background: conic-gradient(from 40deg, rgba(95, 160, 250, 0.3), rgba(140, 95, 235, 0.1), rgba(55, 190, 170, 0.22), rgba(95, 160, 250, 0.3));
+  filter: blur(14px);
   will-change: transform, opacity;
   animation: rise linear infinite;
 }
 
+/* palette variety */
+.bubble:nth-child(3n) {
+  background: conic-gradient(from 180deg, rgba(150, 95, 235, 0.28), rgba(210, 100, 180, 0.1), rgba(80, 130, 245, 0.2), rgba(150, 95, 235, 0.28));
+}
+.bubble:nth-child(3n + 1) {
+  background: conic-gradient(from 300deg, rgba(50, 185, 165, 0.26), rgba(95, 160, 250, 0.1), rgba(225, 170, 70, 0.14), rgba(50, 185, 165, 0.26));
+}
+
 @keyframes rise {
-  0%   { transform: translate3d(0, 0, 0) scale(0.9); opacity: 0; }
-  8%   { opacity: 0.65; }
-  50%  { transform: translate3d(2.5vw, -62vh, 0) scale(1.05); }
-  92%  { opacity: 0.45; }
-  100% { transform: translate3d(-2vw, -125vh, 0) scale(1.18); opacity: 0; }
+  0%   { transform: translate3d(0, 0, 0) scale(0.9) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  50%  { transform: translate3d(2.5vw, -62vh, 0) scale(1.05) rotate(200deg); }
+  92%  { opacity: 0.4; }
+  100% { transform: translate3d(-2vw, -125vh, 0) scale(1.18) rotate(420deg); opacity: 0; }
 }
 
 .bub-1 { width: 9vw; height: 9vw; left: 4vw;  animation-duration: 38s; animation-delay: -4s; }
