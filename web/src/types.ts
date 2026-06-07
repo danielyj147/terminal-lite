@@ -41,7 +41,16 @@ export interface BoardCard {
   items: unknown[];
 }
 
+export interface Ambient {
+  condition: 'rain' | 'snow' | 'wind' | 'cloudy' | 'clear';
+  isDay: boolean;
+  temp: number;
+  wind: number;
+  cloud: number;
+}
+
 export interface Board {
   generatedAt: number;
+  ambient: Ambient | null;
   cards: BoardCard[];
 }

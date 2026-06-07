@@ -15,6 +15,17 @@ export default {
   port: 4321,
 
   cards: [
+    // ── Ambient weather (hidden — drives backdrop animation, not a card) ─
+    // lat/lon optional: auto-geolocated from your IP (keyless) when absent.
+    {
+      id: 'weather',
+      title: 'WEATHER',
+      type: 'weather',
+      hidden: true,
+      cadence: 15 * MIN,
+      // lat: 37.5, lon: 126.9,
+    },
+
     // ── News ────────────────────────────────────────────────────────────
     {
       id: 'news-wires',

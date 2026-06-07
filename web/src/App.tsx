@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from './Card';
-import type { Board } from './types';
+import type { Ambient, Board } from './types';
 
 const POLL_MS = 15_000;
 
@@ -105,7 +105,6 @@ export function App() {
     return (
       <>
         <Backdrop />
-        <Ripples />
         <div className="boot">terminal-lite · connecting…</div>
       </>
     );
@@ -114,7 +113,7 @@ export function App() {
   return (
     <>
       <Backdrop />
-      <Ripples />
+      <WeatherFX ambient={board.ambient} />
       <div className="grid">
         {sortedCards.map((card) => (
           <Card
@@ -132,37 +131,78 @@ export function App() {
   );
 }
 
-// Water-like ripple trail following the cursor. Throttled by time + travel
-// distance so it stays subtle; each ripple is one compositor-animated ring
-// removed from the DOM when its animation ends.
-function Ripples() {
-  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
-  const last = useRef({ x: -999, y: -999, t: 0, id: 0 });
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      const now = performance.now();
-      const dx = e.clientX - last.current.x;
-      const dy = e.clientY - last.current.y;
-      if (now - last.current.t < 70 || dx * dx + dy * dy < 900) return;
-      const id = ++last.current.id;
-      last.current = { x: e.clientX, y: e.clientY, t: now, id };
-      setRipples((rs) => [...rs.slice(-11), { id, x: e.clientX, y: e.clientY }]);
-    };
-    window.addEventListener('mousemove', onMove, { passive: true });
-    return () => window.removeEventListener('mousemove', onMove);
-  }, []);
-
+// Weather + time-of-day ambience: rendered from live conditions (Open-Meteo,
+// keyless, fetched server-side). All elements are CSS-animated with static
+// inline params derived from the index — no per-frame JS.
+function WeatherFX({ ambient }: { ambient: Ambient | null }) {
+  if (!ambient) return null;
+  const { condition, isDay } = ambient;
   return (
-    <div className="ripples" aria-hidden="true">
-      {ripples.map((r) => (
-        <span
-          key={r.id}
-          className="ripple"
-          style={{ left: r.x, top: r.y }}
-          onAnimationEnd={() => setRipples((rs) => rs.filter((x) => x.id !== r.id))}
-        />
-      ))}
+    <div className={`weatherfx ${isDay ? 'day' : 'night'}`} aria-hidden="true">
+      {condition === 'rain' &&
+        Array.from({ length: 36 }, (_, i) => (
+          <span
+            key={i}
+            className="drop"
+            style={{
+              left: `${(i * 37 + 13) % 100}vw`,
+              animationDuration: `${0.9 + (i % 5) * 0.22}s`,
+              animationDelay: `${-((i * 0.53) % 3)}s`,
+            }}
+          />
+        ))}
+      {condition === 'snow' &&
+        Array.from({ length: 30 }, (_, i) => (
+          <span
+            key={i}
+            className="flake"
+            style={{
+              left: `${(i * 41 + 7) % 100}vw`,
+              animationDuration: `${7 + (i % 6)}s`,
+              animationDelay: `${-((i * 1.7) % 9)}s`,
+              opacity: 0.25 + (i % 4) * 0.1,
+            }}
+          />
+        ))}
+      {condition === 'wind' &&
+        Array.from({ length: 8 }, (_, i) => (
+          <span
+            key={i}
+            className="gust"
+            style={{
+              top: `${(i * 13 + 5) % 92}vh`,
+              animationDuration: `${5 + (i % 4) * 1.5}s`,
+              animationDelay: `${-((i * 2.3) % 8)}s`,
+            }}
+          />
+        ))}
+      {condition === 'cloudy' &&
+        Array.from({ length: 4 }, (_, i) => (
+          <span
+            key={i}
+            className="cloud"
+            style={{
+              top: `${(i * 19 + 4) % 70}vh`,
+              animationDuration: `${90 + i * 25}s`,
+              animationDelay: `${-(i * 37)}s`,
+            }}
+          />
+        ))}
+      {condition === 'clear' && isDay && <span className="sunglow" />}
+      {condition === 'clear' &&
+        !isDay &&
+        Array.from({ length: 40 }, (_, i) => (
+          <span
+            key={i}
+            className="star"
+            style={{
+              left: `${(i * 53 + 11) % 100}vw`,
+              top: `${(i * 29 + 3) % 55}vh`,
+              animationDuration: `${2.5 + (i % 5) * 0.8}s`,
+              animationDelay: `${-((i * 0.9) % 4)}s`,
+            }}
+          />
+        ))}
     </div>
   );
 }

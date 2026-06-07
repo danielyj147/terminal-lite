@@ -8,6 +8,7 @@ import { registerAdapter, startScheduler } from './scheduler.mjs';
 import { fetchFfCal } from './adapters/ffcal.mjs';
 import { fetchHackerNews } from './adapters/hackernews.mjs';
 import { fetchRss } from './adapters/rss.mjs';
+import { fetchWeather } from './adapters/weather.mjs';
 import { fetchX } from './adapters/x.mjs';
 import { fetchYahoo } from './adapters/yahoo.mjs';
 
@@ -16,6 +17,10 @@ registerAdapter('yahoo', fetchYahoo);
 registerAdapter('hackernews', fetchHackerNews);
 registerAdapter('ffcal', fetchFfCal);
 registerAdapter('x', fetchX);
+registerAdapter('weather', fetchWeather);
+
+const visibleCards = config.cards.filter((c) => !c.hidden);
+const ambientCard = config.cards.find((c) => c.type === 'weather');
 
 await initCache();
 startScheduler(config.cards);
@@ -25,7 +30,8 @@ const app = new Hono();
 app.get('/api/board', (c) =>
   c.json({
     generatedAt: Date.now(),
-    cards: config.cards.map((card) => {
+    ambient: ambientCard ? (getCard(ambientCard.id)?.items?.[0] ?? null) : null,
+    cards: visibleCards.map((card) => {
       const data = getCard(card.id);
       return {
         id: card.id,
